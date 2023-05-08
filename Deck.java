@@ -30,6 +30,16 @@ public class Deck {
         return cards.indexOf(card);
     }
 
+    public Card dealCard() {
+        int size = cards.size();
+        Card[] tempCards = new Card[size];
+        tempCards = cards.toArray(tempCards);
+        Card card = tempCards[size-1];
+        cards.remove(card);
+        return card;
+    }
+    
+    
     public void shuffle(Random rnd) {
         Collections.shuffle(cards, rnd);
     }
@@ -49,6 +59,10 @@ public class Deck {
 
     public void removeCard(Card card) {
         cards.remove(card);
+    }
+
+    public ArrayList<Card> getCards() {
+        return cards;
     }
 
     @Override
