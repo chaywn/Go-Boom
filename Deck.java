@@ -26,30 +26,17 @@ public class Deck {
         return cards.get(index);
     }
 
-    public int getCardIndex(Card card) {
-        return cards.indexOf(card);
-    }
-
-    public Card dealCard() {
-        int size = cards.size();
-        Card[] tempCards = new Card[size];
-        tempCards = cards.toArray(tempCards);
-        Card card = tempCards[size-1];
-        cards.remove(card);
-        return card;
-    }
-    
-    
     public void shuffle(Random rnd) {
         Collections.shuffle(cards, rnd);
     }
 
+    public void clear() {
+        cards.clear();
+    }
+
     public void addCards(int noOfCards, Deck mainDeck) {
         for (int i = 0; i < noOfCards; i++) {
-            Card card = mainDeck.getCard(0);
-
-            addCard(card);
-            mainDeck.removeCard(card);
+            addCard(mainDeck.popCard(i));
         }
     }
 
@@ -57,12 +44,14 @@ public class Deck {
         cards.add(card);
     }
 
-    public void removeCard(Card card) {
-        cards.remove(card);
+    public Card popCard(int index) {
+        Card card = getCard(index);
+        removeCard(card);
+        return card;
     }
 
-    public ArrayList<Card> getCards() {
-        return cards;
+    public void removeCard(Card card) {
+        cards.remove(card);
     }
 
     @Override

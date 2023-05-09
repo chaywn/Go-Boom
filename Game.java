@@ -1,3 +1,4 @@
+import java.util.Scanner;
 import java.util.Random;
 
 public class Game {
@@ -12,45 +13,129 @@ public class Game {
         {'4', '8', 'Q'}        // Player 4
     };
 
-    static final char[] MAIN_COMMANDS = {'s', 'x', 'd'};
+    // Create Random object, using constant seed(0) for testing purposes
+    static Random rand = new Random(0 /**System.currentTimeMillis()**/);
+    
+    // The main deck, starting with 52 cards
+    static Deck mainDeck = new Deck();
+
+    // The center deck, starting with one lead card
+    static Deck centerDeck = new Deck(1, mainDeck);
+
+    // Create an array of 4 players
+    static Player[] players = new Player[PLAYER_COUNT];
+
+    // Determine the lead player based on the lead card (the first card in the center deck)
+    static int playerTurn = determineStartingPlayer(centerDeck.getCard(0)); 
+
+    static int trickCount = 0;
+    static int playerTurnCount = 0;
+    static boolean playerTurnEnd = false;
 
     public static void main(String[] args) {
-        // Create Random object, using constant seed(0) for testing purposes
-        Random rand = new Random(0 /**System.currentTimeMillis()**/);
+        Scanner input = new Scanner(System.in);
 
-        // The main deck, starting with 52 cards
-        Deck mainDeck= new Deck();
         mainDeck.shuffle(rand);
 
-        // The center deck, starting with one lead card
-        Deck centerDeck = new Deck(1, mainDeck);
-
-        // Create an array of 4 players
-        Player[] players = new Player[PLAYER_COUNT];
+        // Create Player objects and deal 7 cards to the player from the main deck
         for (int i = 0; i < PLAYER_COUNT; i++) {
             players[i] = new Player(i);
-
-            // Deal 7 cards to the player from the main deck
             players[i].retrieveCards(7, mainDeck);
         }
-        
 
+        while (true) {
+            try {
+                // Display cards
+                displayCards();
+                
+                // Get user command input
+                System.out.print("> ");
+                String cmd = input.next();
 
-        // Determine the lead player based on the lead card (the first card in the center deck)
-        int playerTurn = determineStartingPlayer(centerDeck.getCard(0)); 
-        
-        int trickCount = 0;
+                // Check command and run
+                if (cmd.length() == 1) {
+                    switch (Character.toLowerCase(cmd.charAt(0))) {
+                        // Start game command
+                        case 's':
+                            restartGame();
+                            break;
+                        // Quit game command
+                        case 'x':
+                            input.close();
+                            return;
+                        // Draw card command
+                        case 'd':
+                            playerDrawCard();
+                            break;
+                        default: 
+                            throw new IllegalArgumentException("Invalid Command.");
+                    }
+                }
+                else if (cmd.length() == 2) {
+                    playerDealCard(cmd);
+                }
+                else {
+                    throw new IllegalArgumentException("Invalid Command.");
+                }
+            }
+            catch (IllegalArgumentException ex) {
+                System.out.println("Input Error: " + ex.getMessage());
+            }
 
+            if (playerTurnEnd) {
+                // If all players have played their turn
+                if (playerTurnCount == PLAYER_COUNT - 1) {
+                    // Determine the winner of the trick, and set them as the lead player for the next trick
+                    playerTurn = determineTrickWinner();
+                    System.out.println();
+                    System.out.println("*** Player" + (playerTurn + 1) + " wins Trick #" + (trickCount + 1) + " ***");
+                    centerDeck.clear();
+                    playerTurnCount = 0;
+                    trickCount++;
 
-        // Display cards
-        displayCards(players, centerDeck, mainDeck, playerTurn);
-        
-        // System.out.print("> ");
-    
+                    // Check if the game has ended when a player runs out of cards to play
+                    if (checkGameEnd()) {
+                        System.out.println("*** Player" + (determineGameWinner() + 1) + " wins the game! A new game is initialized ***");
+                        // Start a new game
+                        restartGame();
+                    }
+                }
+                // Else, switch to next player
+                else {
+                    playerTurn = (playerTurn + 1) % PLAYER_COUNT;
+                    playerTurnCount++;
+                }
+                playerTurnEnd = false;
+            }
+
+            input.nextLine();
+            System.out.println();
+        }
     }
 
+    static void restartGame() {
+        mainDeck= new Deck();
+        mainDeck.shuffle(rand);
 
-    static void displayCards(Player[] players, Deck centerDeck, Deck mainDeck, int playerTurn) {
+        centerDeck = new Deck(1, mainDeck);
+
+        players = new Player[PLAYER_COUNT];
+        for (int i = 0; i < PLAYER_COUNT; i++) {
+            players[i] = new Player(i);
+            players[i].retrieveCards(7, mainDeck);
+        }
+
+        playerTurn = determineStartingPlayer(centerDeck.getCard(0)); 
+
+        trickCount = 0;
+        playerTurnCount = 0;
+        playerTurnEnd = false;
+    }
+
+    static void displayCards() {
+        System.out.println("Trick #" + (trickCount + 1));
+        System.out.println();
+
         for (Player p: players) {
             System.out.println(p);
         }
@@ -71,6 +156,7 @@ public class Game {
     }
 
 
+
     static int determineStartingPlayer(Card leadCard) {
         char leadCardRank = leadCard.getRank();
         
@@ -84,21 +170,99 @@ public class Game {
         return 0;
     }
 
-    // TO BE COMPLETED
-    static int determineWinner(int playerTurn, Deck centerDeck) {
-       
-        Card firstCard = centerDeck.getCard(centerDeck.getSize() - PLAYER_COUNT);
-        Card largestCard = firstCard;
-
-        for (int i = 1; i < centerDeck.getSize(); i++) {
-            Card card = centerDeck.getCard(i);
-            
-            if (card.compareTo(largestCard) > 0) {
-                largestCard = card;
+    static void playerDrawCard() {
+        // Draws card only if the mainDeck has card(s)
+        if (mainDeck.getSize() > 0) {
+            players[playerTurn].drawCard(mainDeck);
+        }
+        else {
+            System.out.println("There's no more cards in the deck. Player" + (playerTurn + 1) + "'s turn is skipped.");
+            playerTurnEnd = true;
+        }
+    }
+                            
+    static void playerDealCard(String cmd) throws IllegalArgumentException {
+        Player p = players[playerTurn];
+        char suit = Character.toLowerCase(cmd.charAt(0)), rank = Character.toUpperCase(cmd.charAt(1));
+        boolean valid = false;
+        
+        // Check if the card is valid
+        // 1. Check if the first char is a suit
+        for (char s : Card.SUITS) {
+            if (suit == s) {
+                // 2. Check if the second char is a rank
+                for (char r : Card.RANKS) {
+                    if (rank == r) {
+                        valid = true;
+                        break;
+                    }
+                }
+                break;
             }
         }
+        if (!valid) {
+            throw new IllegalArgumentException("Card does not exist.");
+        }
 
-        int index = centerDeck.getCardIndex(largestCard); // 4
+        // Check if player has this card
+        if (p.containCard(suit, rank)) {
+            // Check if the card is playable
+            if (centerDeck.getSize() == 0 || suit == centerDeck.getCard(0).getSuit() || rank == centerDeck.getCard(0).getRank()) {
+                Card card = p.dealCard(suit, rank);
+                centerDeck.addCard(card);
+                playerTurnEnd = true;
+            }
+            else {
+                throw new IllegalArgumentException("Card does not follow the suit or rank of the lead card.");
+            }
+        }
+        else {
+            throw new IllegalArgumentException("Player does not have this card.");
+        }
+        
+    }
+
+
+    // TO-DO:
+    // 1. Check whether the game has ended when one of the players run out of cards to play
+    // 2. Get each player's deck size and check if they're 0, meaning they have no cards left in their deck
+    // 3. Return true if there is player who has 0 deck size, else return false
+    // HINT: Deck class has getSize() method, you may want to implement a method in Player class to return the size of a particular player's deck size
+    static boolean checkGameEnd() {
+
+        return true;
+    }
+
+
+    // TO-DO: 
+    // 1. Determine the winner of each trick after every player has made their turn 
+    //    *You do not need to check whether all players have finished playing because I already did it
+    // 2. Player with the highest ranked card (and same suit as lead card) wins the trick
+    // 3. Return the index of the winner (0 = Player1, 1 = Player2, 2 = Player3, 3 = Player4)
+    // HINT: 
+    // 1. You need to way to identify which card is played by which player (e.g. using Array index? -> requires extra code outside of this method to add and clear array)
+    // 2. Card class has a compareTo() method which compares cards based on their rank. You may use it or modify it further. 
+    static int determineTrickWinner() {
+
+        return 0;
+    }
+
+    // TO-DO: 
+    // 1. Calculate the score for all players once a game has finished
+    // 2. Calculate the score of each player based on their remaining cards (the winner will have 0 score since they have no cards left)
+    //     *watch the go boom tutorial on how the scores are calculated
+    // 3. Update each player's score
+    // HINT: Player class has a score attribute, you may want to implement a new method in Player to update their scores
+    static void calculateScores() {
+
+    }
+
+    // TO-DO: 
+    // 1. Determine the winner of the game based on the players' score after a game has finished
+    // 2. Player with the lowest score wins the game
+    // 3. Return the index of the winner (0 = Player1, 1 = Player2, 2 = Player3, 3 = Player4)
+    // HINT: use player.getScore() to retrieve a player's score
+    static int determineGameWinner() {
 
         return 0;
     }
