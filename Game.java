@@ -110,6 +110,12 @@ public class Game {
 
             input.nextLine();
             System.out.println();
+            
+            boolean gameWinner = checkGameEnd();
+            if (gameWinner == true){
+                determineGameWinner();
+                break;
+            }
         }
     }
 
@@ -229,10 +235,18 @@ public class Game {
     // 3. Return true if there is player who has 0 deck size, else return false
     // HINT: Deck class has getSize() method, you may want to implement a method in Player class to return the size of a particular player's deck size
     static boolean checkGameEnd() {
-
-        return true;
+        boolean gotWinner = false;
+        for (int i = 0; i < 4; i++) {
+            if (players[i].getDeckSize() == 0) {
+                gotWinner = true;
+            }
+        }
+        if (gotWinner == true) {
+            return true;
+        } else {
+            return false;
+        }
     }
-
 
     // TO-DO: 
     // 1. Determine the winner of each trick after every player has made their turn 
