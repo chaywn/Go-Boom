@@ -14,6 +14,10 @@ public class Player {
     public int getScore() {
         return score;
     }
+    
+    public int getDeckSize() {
+        return deck.getSize();
+    }
 
     public boolean containCard(char suit, char rank) {
         for (int i = 0; i < deck.getSize(); i++) {
