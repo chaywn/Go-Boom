@@ -2,9 +2,11 @@ public class Player {
     private int number;
     private int score;
     private Deck deck;
+    private Card playedCard;
 
     public Player(int number) {
         this.number = number;
+        this.playedCard = null;
     }
 
     public int getNumber() {
@@ -25,6 +27,10 @@ public class Player {
 
     public void setScore(int score) {
         this.score = score;
+    }
+
+    public void playedCard (Card card){
+        this.playedCard = card;
     }
 
     public boolean containCard(char suit, char rank) {
@@ -72,6 +78,10 @@ public class Player {
     @Override
     public String toString() {
         return "Player" + (number+1) + ": " + deck;
+    }
+
+    public Card getPlayedCard() {
+        return playedCard;
     } 
 
     
