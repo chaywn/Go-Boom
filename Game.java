@@ -314,7 +314,18 @@ public class Game {
     // 3. Return the index of the winner (0 = Player1, 1 = Player2, 2 = Player3, 3 = Player4)
     // HINT: use player.getScore() to retrieve a player's score
     static int determineGameWinner() {
+    int winner = 0;
+    int lowestScore = Integer.MAX_VALUE;
 
-        return 0;
+    for (int i = 0; i < PLAYER_COUNT; i++) {
+        Player player = players[i];
+        int score = player.getScore();
+
+        if (score < lowestScore) {
+            lowestScore = score;
+            winner = i;
+        }
+    }
+    return winner;
     }
 }
