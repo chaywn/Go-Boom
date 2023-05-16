@@ -268,7 +268,52 @@ public class Game {
     // 3. Update each player's score
     // HINT: Player class has a score attribute, you may want to implement a new method in Player to update their scores
     static void calculateScores() {
+        for (Player player: players){
+            int score = 0;
+            Deck deck = player.getDeck();
 
+            if(deck.getSize() > 0){
+                for (int i = 0; i < deck.getSize(); i++){
+                    Card card = deck.getCard(i);
+                    int cardValue = getCardValue(card);
+                    score += cardValue;
+                }
+            }
+
+            player.setScore(score);
+        }
+    }
+    
+    static int getCardValue(Card card){
+        char rank = card.getRank();
+
+        switch (rank) {
+            case '2':
+                return 2;
+            case '3':
+                return 3;
+            case '4':
+                return 4;
+            case '5':
+                return 5;
+            case '6':
+                return 6;
+            case '7':
+                return 7;
+            case '8':
+                return 8;
+            case '9':
+                return 9;
+            case 'A':
+                return 1;
+            case 'X':
+            case 'J':
+            case 'Q':
+            case 'K':
+                return 10;
+            default:
+                throw new IllegalArgumentException("Invalid rank: " + rank);
+        }
     }
 
     // TO-DO: 
