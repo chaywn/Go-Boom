@@ -216,6 +216,7 @@ public class Game {
             if (centerDeck.getSize() == 0 || suit == centerDeck.getCard(0).getSuit() || rank == centerDeck.getCard(0).getRank()) {
                 Card card = p.dealCard(suit, rank);
                 centerDeck.addCard(card);
+                p.playedCard(card);
                 playerTurnEnd = true;
             }
             else {
@@ -252,9 +253,27 @@ public class Game {
     // 1. You need to way to identify which card is played by which player (e.g. using Array index? -> requires extra code outside of this method to add and clear array)
     // 2. Card class has a compareTo() method which compares cards based on their rank. You may use it or modify it further. 
     static int determineTrickWinner() {
-
-        return 0;
+        Card leadCard = centerDeck.getCard(0);
+        char leadSuit = leadCard.getSuit();
+        int highestRankIndex = -1;
+        int trickWinnerIndex = -1;
+    
+        for (int i = 0; i < PLAYER_COUNT; i++) {
+            Card playedCard = players[i].getPlayedCard();
+            if (playedCard.getSuit() == leadSuit) {
+                if (highestRankIndex == -1 || playedCard.getRank() > players[highestRankIndex].getPlayedCard().getRank()) {
+                    highestRankIndex = i;
+                }
+            }
+        }
+    
+        if (highestRankIndex != -1) {
+            trickWinnerIndex = highestRankIndex;
+        }
+    
+        return trickWinnerIndex;
     }
+    
 
     // TO-DO: 
     // 1. Calculate the score for all players once a game has finished
