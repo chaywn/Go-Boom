@@ -26,6 +26,8 @@ public class Game {
     // Create an array of 4 players
     static Player[] players;
 
+    static Player winner;
+
     static int playerTurn, trickCount, playerTurnCount;
     static boolean playerTurnEnd, gameEnd;
 
@@ -99,7 +101,8 @@ public class Game {
             // Check if the game has ended when a player runs out of cards to play
             if (gameEnd) {
                 calculateScores();
-                System.out.println("*** Player" + (determineGameWinner() + 1) + " wins the game! A new game is initialized ***");
+                System.out.println();
+                System.out.println("*** Player" + (winner.getNumber() + 1) + " wins the game! A new game is initialized ***");
                 // Start a new game
                 startGame();
             }
@@ -230,34 +233,23 @@ public class Game {
     }
 
 
-    // TO-DO:
-    // 1. Check whether the game has ended when one of the players run out of cards to play
-    // 2. Get each player's deck size and check if they're 0, meaning they have no cards left in their deck
-    // 3. Return true if there is player who has 0 deck size, else return false
-    // HINT: Deck class has getSize() method, you may want to implement a method in Player class to return the size of a particular player's deck size
     static boolean checkGameEnd() {
         for (int i = 0; i < PLAYER_COUNT; i++) {
             if (players[i].getDeckSize() == 0) {
+                winner = players[i];
                 return true;
             }
         }
         return false;
     }
 
-    // TO-DO: 
-    // 1. Determine the winner of each trick after every player has made their turn 
-    //    *You do not need to check whether all players have finished playing because I already did it
-    // 2. Player with the highest ranked card (and same suit as lead card) wins the trick
-    // 3. Return the index of the winner (0 = Player1, 1 = Player2, 2 = Player3, 3 = Player4)
-    // HINT: 
-    // 1. You need to way to identify which card is played by which player (e.g. using Array index? -> requires extra code outside of this method to add and clear array)
-    // 2. Card class has a compareTo() method which compares cards based on their rank. You may use it or modify it further. 
+
     static int determineTrickWinner() {
         Card leadCard = centerDeck.getCard(0);
         char leadSuit = leadCard.getSuit();
         int highestRankIndex = -1;
         int trickWinnerIndex = -1;
-    
+        
         for (int i = 0; i < PLAYER_COUNT; i++) {
             Card playedCard = players[i].getPlayedCard();
             if (playedCard.getSuit() == leadSuit) {
@@ -275,12 +267,6 @@ public class Game {
     }
     
 
-    // TO-DO: 
-    // 1. Calculate the score for all players once a game has finished
-    // 2. Calculate the score of each player based on their remaining cards (the winner will have 0 score since they have no cards left)
-    //     *watch the go boom tutorial on how the scores are calculated
-    // 3. Update each player's score
-    // HINT: Player class has a score attribute, you may want to implement a new method in Player to update their scores
     static void calculateScores() {
         for (Player player: players){
             int score = 0;
@@ -294,7 +280,7 @@ public class Game {
                 }
             }
 
-            player.setScore(score);
+            player.setScore(player.getScore() + score);
         }
     }
     
@@ -325,26 +311,5 @@ public class Game {
             default:
                 return -1;
         }
-    }
-
-    // TO-DO: 
-    // 1. Determine the winner of the game based on the players' score after a game has finished
-    // 2. Player with the lowest score wins the game
-    // 3. Return the index of the winner (0 = Player1, 1 = Player2, 2 = Player3, 3 = Player4)
-    // HINT: use player.getScore() to retrieve a player's score
-    static int determineGameWinner() {
-    int winner = 0;
-    int lowestScore = Integer.MAX_VALUE;
-
-    for (int i = 0; i < PLAYER_COUNT; i++) {
-        Player player = players[i];
-        int score = player.getScore();
-
-        if (score < lowestScore) {
-            lowestScore = score;
-            winner = i;
-        }
-    }
-    return winner;
     }
 }
