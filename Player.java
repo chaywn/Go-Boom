@@ -60,4 +60,11 @@ public class Player {
     public String toString() {
         return "Player" + (number+1) + ": " + deck;
     } 
+    public void setScore(int score) {
+        this.score = score;
+    }
+
+    public Deck getDeck() {
+        return deck;
+    } 
 }
