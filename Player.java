@@ -19,6 +19,14 @@ public class Player {
         return deck.getSize();
     }
 
+    public Deck getDeck() {
+        return deck;
+    } 
+
+    public void setScore(int score) {
+        this.score = score;
+    }
+
     public boolean containCard(char suit, char rank) {
         for (int i = 0; i < deck.getSize(); i++) {
             if (suit == deck.getCard(i).getSuit() && rank == deck.getCard(i).getRank()) {
@@ -56,15 +64,15 @@ public class Player {
         deck.addCard(mainDeck.popCard(0));
     }
 
+    public void resetDeck(int noOfCards, Deck mainDeck) {
+        deck.clear();
+        deck.addCards(noOfCards, mainDeck);
+    }
+
     @Override
     public String toString() {
         return "Player" + (number+1) + ": " + deck;
     } 
-    public void setScore(int score) {
-        this.score = score;
-    }
 
-    public Deck getDeck() {
-        return deck;
-    } 
+    
 }

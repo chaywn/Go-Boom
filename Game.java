@@ -5,6 +5,7 @@ public class Game {
 
     // CONSTANTS
     static final int PLAYER_COUNT = 4; 
+    static final int STARTING_CARD_NO = 7;
 
     static final char[][] LEAD_CARDS = {
         {'A', '5', '9', 'K'},  // Player 1
@@ -17,31 +18,22 @@ public class Game {
     static Random rand = new Random(0 /**System.currentTimeMillis()**/);
     
     // The main deck, starting with 52 cards
-    static Deck mainDeck = new Deck();
+    static Deck mainDeck;
 
     // The center deck, starting with one lead card
-    static Deck centerDeck = new Deck(1, mainDeck);
+    static Deck centerDeck;
 
     // Create an array of 4 players
-    static Player[] players = new Player[PLAYER_COUNT];
+    static Player[] players;
 
-    // Determine the lead player based on the lead card (the first card in the center deck)
-    static int playerTurn = determineStartingPlayer(centerDeck.getCard(0)); 
-
-    static int trickCount = 0;
-    static int playerTurnCount = 0;
-    static boolean playerTurnEnd = false;
+    static int playerTurn, trickCount, playerTurnCount;
+    static boolean playerTurnEnd, gameEnd;
 
     public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
 
+        startGame();
         mainDeck.shuffle(rand);
-
-        // Create Player objects and deal 7 cards to the player from the main deck
-        for (int i = 0; i < PLAYER_COUNT; i++) {
-            players[i] = new Player(i);
-            players[i].retrieveCards(7, mainDeck);
-        }
 
         while (true) {
             try {
@@ -57,7 +49,7 @@ public class Game {
                     switch (Character.toLowerCase(cmd.charAt(0))) {
                         // Start game command
                         case 's':
-                            restartGame();
+                            startGame();
                             break;
                         // Quit game command
                         case 'x':
@@ -65,14 +57,17 @@ public class Game {
                             return;
                         // Draw card command
                         case 'd':
+                        {
                             playerDrawCard();
                             break;
+                        }
                         default: 
                             throw new IllegalArgumentException("Invalid Command.");
                     }
                 }
                 else if (cmd.length() == 2) {
                     playerDealCard(cmd);
+                    gameEnd = checkGameEnd();
                 }
                 else {
                     throw new IllegalArgumentException("Invalid Command.");
@@ -92,13 +87,6 @@ public class Game {
                     centerDeck.clear();
                     playerTurnCount = 0;
                     trickCount++;
-
-                    // Check if the game has ended when a player runs out of cards to play
-                    if (checkGameEnd()) {
-                        System.out.println("*** Player" + (determineGameWinner() + 1) + " wins the game! A new game is initialized ***");
-                        // Start a new game
-                        restartGame();
-                    }
                 }
                 // Else, switch to next player
                 else {
@@ -108,34 +96,46 @@ public class Game {
                 playerTurnEnd = false;
             }
 
+            // Check if the game has ended when a player runs out of cards to play
+            if (gameEnd) {
+                calculateScores();
+                System.out.println("*** Player" + (determineGameWinner() + 1) + " wins the game! A new game is initialized ***");
+                // Start a new game
+                startGame();
+            }
+
             input.nextLine();
             System.out.println();
-            
-            boolean gameWinner = checkGameEnd();
-            if (gameWinner == true){
-                determineGameWinner();
-                break;
-            }
         }
     }
 
-    static void restartGame() {
+    static void startGame() {
         mainDeck= new Deck();
         mainDeck.shuffle(rand);
 
         centerDeck = new Deck(1, mainDeck);
-
-        players = new Player[PLAYER_COUNT];
-        for (int i = 0; i < PLAYER_COUNT; i++) {
-            players[i] = new Player(i);
-            players[i].retrieveCards(7, mainDeck);
+        
+        if (players == null) {
+            players = new Player[PLAYER_COUNT];
+            for (int i = 0; i < PLAYER_COUNT; i++) {
+                players[i] = new Player(i);
+                players[i].retrieveCards(STARTING_CARD_NO, mainDeck);
+            }
         }
+        else {
+            for (Player p: players) {
+                p.resetDeck(STARTING_CARD_NO, mainDeck);
+            }
+        }
+        
 
+        // Determine the lead player based on the lead card (the first card in the center deck)
         playerTurn = determineStartingPlayer(centerDeck.getCard(0)); 
 
         trickCount = 0;
         playerTurnCount = 0;
         playerTurnEnd = false;
+        gameEnd = false;
     }
 
     static void displayCards() {
@@ -155,7 +155,7 @@ public class Game {
                 System.out.print(" | ");
             }
 
-            System.out.print("Player" + (p.getNumber() + 1) + " = " + p.getScore());
+            System.out.print("Player" + (players[i].getNumber() + 1) + " = " + p.getScore());
         }
         System.out.println();
         System.out.println("Turn : Player" + (playerTurn + 1));
@@ -235,17 +235,12 @@ public class Game {
     // 3. Return true if there is player who has 0 deck size, else return false
     // HINT: Deck class has getSize() method, you may want to implement a method in Player class to return the size of a particular player's deck size
     static boolean checkGameEnd() {
-        boolean gotWinner = false;
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < PLAYER_COUNT; i++) {
             if (players[i].getDeckSize() == 0) {
-                gotWinner = true;
+                return true;
             }
         }
-        if (gotWinner == true) {
-            return true;
-        } else {
-            return false;
-        }
+        return false;
     }
 
     // TO-DO: 
@@ -272,7 +267,7 @@ public class Game {
             int score = 0;
             Deck deck = player.getDeck();
 
-            if(deck.getSize() > 0){
+            if (deck.getSize() > 0){
                 for (int i = 0; i < deck.getSize(); i++){
                     Card card = deck.getCard(i);
                     int cardValue = getCardValue(card);
@@ -284,7 +279,7 @@ public class Game {
         }
     }
     
-    static int getCardValue(Card card){
+    static int getCardValue(Card card) {
         char rank = card.getRank();
 
         switch (rank) {
@@ -306,13 +301,10 @@ public class Game {
                 return 9;
             case 'A':
                 return 1;
-            case 'X':
-            case 'J':
-            case 'Q':
-            case 'K':
+            case 'X','J','Q','K':
                 return 10;
             default:
-                throw new IllegalArgumentException("Invalid rank: " + rank);
+                return -1;
         }
     }
 
