@@ -63,10 +63,8 @@ public class Game {
                             return;
                         // Draw card command
                         case 'd':
-                        {
                             playerDrawCard();
                             break;
-                        }
                         default: 
                             throw new IllegalArgumentException("Invalid Command.");
                     }
@@ -87,7 +85,7 @@ public class Game {
                 // If all players have played their turn
                 if (playerTurnCount == PLAYER_COUNT - 1) {
                     // Determine the roundWinner of the trick, and set them as the lead player for the next trick
-                    playerTurn = determineTrickroundWinner();
+                    playerTurn = determineTrickWinner();
                     System.out.println();
                     System.out.println("*** Player" + (playerTurn + 1) + " wins Trick #" + (trickCount + 1) + " ***");
                     centerDeck.clear();
@@ -107,7 +105,7 @@ public class Game {
                 calculateScores();
                 System.out.println();
                 System.out.println("*** Player" + (roundWinner.getNumber() + 1) + " wins the round! A new round is initialized ***");
-                // Start a new game
+                // Start a new round
                 startNewRound();
             }
 
@@ -117,7 +115,6 @@ public class Game {
     }
 
     static void startNewGame() {
-        
         players = new Player[PLAYER_COUNT];
         startNewRound();
     }
@@ -165,7 +162,7 @@ public class Game {
                 System.out.print(" | ");
             }
 
-            System.out.print("Player" + (players[i].getNumber() + 1) + " = " + p.getScore());
+            System.out.print("Player" + (p.getNumber() + 1) + " = " + p.getScore());
         }
         System.out.println();
         System.out.println("Turn : Player" + (playerTurn + 1));
@@ -242,6 +239,7 @@ public class Game {
 
 
     static boolean checkRoundEnd() {
+        // Returns true if a player's deck is empty
         for (int i = 0; i < PLAYER_COUNT; i++) {
             if (players[i].getDeckSize() == 0) {
                 roundWinner = players[i];
@@ -252,7 +250,7 @@ public class Game {
     }
 
 
-    static int determineTrickroundWinner() {
+    static int determineTrickWinner() {
         Card leadCard = centerDeck.getCard(0);
         char leadSuit = leadCard.getSuit();
 
@@ -260,7 +258,8 @@ public class Game {
         
         for (int i = 0; i < PLAYER_COUNT; i++) {
             Card playedCard = players[i].getPlayedCard();
-            if (playedCard.getSuit() == leadSuit) {
+
+            if (playedCard != null && playedCard.getSuit() == leadSuit) {
                 map.put(playedCard, i);
             }
         }
