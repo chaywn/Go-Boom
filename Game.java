@@ -1,4 +1,6 @@
 import java.util.Scanner;
+import java.util.TreeMap;
+import java.util.Collections;
 import java.util.Random;
 
 public class Game {
@@ -14,8 +16,8 @@ public class Game {
         {'4', '8', 'Q'}        // Player 4
     };
 
-    // Create Random object, using constant seed(0) for testing purposes
-    static Random rand = new Random(0 /**System.currentTimeMillis()**/);
+    // Create Random object
+    static Random rand = new Random(System.currentTimeMillis());
     
     // The main deck, starting with 52 cards
     static Deck mainDeck;
@@ -26,15 +28,15 @@ public class Game {
     // Create an array of 4 players
     static Player[] players;
 
-    static Player winner;
+    static Player roundWinner;
 
     static int playerTurn, trickCount, playerTurnCount;
-    static boolean playerTurnEnd, gameEnd;
+    static boolean playerTurnEnd, roundEnd;
 
     public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
 
-        startGame();
+        startNewGame();
         mainDeck.shuffle(rand);
 
         while (true) {
@@ -42,7 +44,7 @@ public class Game {
                 // Display cards
                 displayCards();
                 
-                // Get user command input
+                // Get user command inputs
                 System.out.print("> ");
                 String cmd = input.next();
 
@@ -51,9 +53,11 @@ public class Game {
                     switch (Character.toLowerCase(cmd.charAt(0))) {
                         // Start game command
                         case 's':
-                            startGame();
+                            System.out.println();
+                            System.out.println("*** A new game is initialized ***");
+                            startNewGame();
                             break;
-                        // Quit game command
+                        // Quit game scommand
                         case 'x':
                             input.close();
                             return;
@@ -69,7 +73,7 @@ public class Game {
                 }
                 else if (cmd.length() == 2) {
                     playerDealCard(cmd);
-                    gameEnd = checkGameEnd();
+                    roundEnd = checkRoundEnd();
                 }
                 else {
                     throw new IllegalArgumentException("Invalid Command.");
@@ -82,8 +86,8 @@ public class Game {
             if (playerTurnEnd) {
                 // If all players have played their turn
                 if (playerTurnCount == PLAYER_COUNT - 1) {
-                    // Determine the winner of the trick, and set them as the lead player for the next trick
-                    playerTurn = determineTrickWinner();
+                    // Determine the roundWinner of the trick, and set them as the lead player for the next trick
+                    playerTurn = determineTrickroundWinner();
                     System.out.println();
                     System.out.println("*** Player" + (playerTurn + 1) + " wins Trick #" + (trickCount + 1) + " ***");
                     centerDeck.clear();
@@ -99,12 +103,12 @@ public class Game {
             }
 
             // Check if the game has ended when a player runs out of cards to play
-            if (gameEnd) {
+            if (roundEnd) {
                 calculateScores();
                 System.out.println();
-                System.out.println("*** Player" + (winner.getNumber() + 1) + " wins the game! A new game is initialized ***");
+                System.out.println("*** Player" + (roundWinner.getNumber() + 1) + " wins the round! A new round is initialized ***");
                 // Start a new game
-                startGame();
+                startNewRound();
             }
 
             input.nextLine();
@@ -112,14 +116,19 @@ public class Game {
         }
     }
 
-    static void startGame() {
+    static void startNewGame() {
+        
+        players = new Player[PLAYER_COUNT];
+        startNewRound();
+    }
+
+    static void startNewRound() {
         mainDeck= new Deck();
         mainDeck.shuffle(rand);
 
         centerDeck = new Deck(1, mainDeck);
-        
-        if (players == null) {
-            players = new Player[PLAYER_COUNT];
+
+        if (players[0] == null) {
             for (int i = 0; i < PLAYER_COUNT; i++) {
                 players[i] = new Player(i);
                 players[i].retrieveCards(STARTING_CARD_NO, mainDeck);
@@ -130,7 +139,6 @@ public class Game {
                 p.resetDeck(STARTING_CARD_NO, mainDeck);
             }
         }
-        
 
         // Determine the lead player based on the lead card (the first card in the center deck)
         playerTurn = determineStartingPlayer(centerDeck.getCard(0)); 
@@ -138,12 +146,11 @@ public class Game {
         trickCount = 0;
         playerTurnCount = 0;
         playerTurnEnd = false;
-        gameEnd = false;
+        roundEnd = false;
     }
 
     static void displayCards() {
         System.out.println("Trick #" + (trickCount + 1));
-        System.out.println();
 
         for (Player p: players) {
             System.out.println(p);
@@ -186,6 +193,7 @@ public class Game {
         }
         else {
             System.out.println("There's no more cards in the deck. Player" + (playerTurn + 1) + "'s turn is skipped.");
+            players[playerTurn].noPlayedCard();
             playerTurnEnd = true;
         }
     }
@@ -233,10 +241,10 @@ public class Game {
     }
 
 
-    static boolean checkGameEnd() {
+    static boolean checkRoundEnd() {
         for (int i = 0; i < PLAYER_COUNT; i++) {
             if (players[i].getDeckSize() == 0) {
-                winner = players[i];
+                roundWinner = players[i];
                 return true;
             }
         }
@@ -244,26 +252,20 @@ public class Game {
     }
 
 
-    static int determineTrickWinner() {
+    static int determineTrickroundWinner() {
         Card leadCard = centerDeck.getCard(0);
         char leadSuit = leadCard.getSuit();
-        int highestRankIndex = -1;
-        int trickWinnerIndex = -1;
+
+        TreeMap<Card, Integer> map = new TreeMap<>(Collections.reverseOrder());
         
         for (int i = 0; i < PLAYER_COUNT; i++) {
             Card playedCard = players[i].getPlayedCard();
             if (playedCard.getSuit() == leadSuit) {
-                if (highestRankIndex == -1 || playedCard.getRank() > players[highestRankIndex].getPlayedCard().getRank()) {
-                    highestRankIndex = i;
-                }
+                map.put(playedCard, i);
             }
         }
     
-        if (highestRankIndex != -1) {
-            trickWinnerIndex = highestRankIndex;
-        }
-    
-        return trickWinnerIndex;
+        return map.get(map.firstKey());
     }
     
 

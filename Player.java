@@ -29,8 +29,12 @@ public class Player {
         this.score = score;
     }
 
-    public void playedCard (Card card){
+    public void playedCard (Card card) {
         this.playedCard = card;
+    }
+
+    public void noPlayedCard () {
+        this.playedCard = null;
     }
 
     public boolean containCard(char suit, char rank) {
