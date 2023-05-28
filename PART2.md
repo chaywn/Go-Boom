@@ -37,8 +37,8 @@ No | Feature                                                                    
 2  | When the remaining deck is exhausted and the player cannot play,                 | Y
    | the player does not play in the trick.                                           |
 3  | Finish a round of game correctly. Display the score of each player.              | Y
-4  | Can exit and save the game (use file or database).                               | P
-5  | Can resume the game. The state of the game is restored when resuming a game      | P
+4  | Can exit and save the game (use file or database).                               | Y
+5  | Can resume the game. The state of the game is restored when resuming a game      | Y
    | (use file or database).                                                          |
 6  | Reset the game. All scores become zero. Round and trick number restart from 1.   | Y
 7  | Support GUI playing mode (cards should be faced up or down as in the real game). | P

@@ -67,9 +67,16 @@ public class Game {
                             break;
                         // Resume game command
                         case 'l':
-                            break;
+                            loadGame();
+                            input.nextLine();
+                            System.out.println();
+                            continue;
                         // Quit game command
                         case 'x':
+                            saveGame();
+                            System.out.println();
+                            System.out.println("*** Game Saved and Exited ***");
+                            System.out.println();
                             input.close();
                             return;
                         // Draw card command
@@ -367,6 +374,12 @@ public class Game {
         StringBuilder sb = new StringBuilder();
     
         Iterator<Card> iterator = deck.iterator();
+
+        // if the deck is empty
+        if (!iterator.hasNext()) {
+            return "\n";
+        }
+
         while (iterator.hasNext()) {
             Card card = iterator.next();
             sb.append(card.getSuit()).append(card.getRank());
@@ -380,13 +393,17 @@ public class Game {
     }
 
     static Deck stringToDeck(String deckString) {
-        Deck deck = new Deck(rand);
+        Deck deck = new Deck();
     
         String[] cards = deckString.split(",");
-        for (String card : cards) {
-            char suit = card.charAt(0);
-            char rank = card.charAt(1);
-            deck.addCard(new Card(suit, rank));
+
+        // If deckString is not empty
+        if (!cards[0].equals("")) {
+            for (String card : cards) {
+                char suit = card.charAt(0);
+                char rank = card.charAt(1);
+                deck.addCard(new Card(suit, rank));
+            }
         }
     
         return deck;
@@ -444,42 +461,14 @@ public class Game {
         } catch (IOException e) {
             System.out.println("Error loading game: " + e.getMessage());
         }
+
+        System.out.println();
+        System.out.println("*** Previous game resumed ***");
     }
     
     
     static void deleteSaveFile() {
         File file = new File(SAVE_FILE_NAME);
         file.delete();
-    }
-
-    static void playGame() {
-        Scanner scanner = new Scanner(System.in);
-        String cmd;
-    
-        while (true) {
-            displayCards();
-    
-            System.out.println("Enter command (play/draw/exit):");
-            cmd = scanner.nextLine();
-    
-            if (cmd.equalsIgnoreCase("play")) {
-                // ...
-                // Rest of the playGame() method implementation
-    
-            } else if (cmd.equalsIgnoreCase("draw")) {
-                // ...
-                // Rest of the draw card logic
-    
-            } else if (cmd.equalsIgnoreCase("exit")) {
-                saveGame();
-                System.out.println("Game saved. Exiting...");
-                break;
-    
-            } else {
-                System.out.println("Invalid command. Please try again.");
-            }
-        }
-    
-        scanner.close();
     }
 }

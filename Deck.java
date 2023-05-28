@@ -7,6 +7,11 @@ import java.util.Iterator;
 public class Deck {
     private LinkedHashSet<Card> cards = new LinkedHashSet<>();
 
+    // Create new empty deck
+    public Deck() {
+        cards = new LinkedHashSet<>();
+    }
+
     // Create 52 cards
     public Deck(Random rnd) {
         Card[] cardArr = new Card[52];
@@ -22,6 +27,7 @@ public class Deck {
         cards.addAll(Arrays.asList(cardArr));
     }
 
+    // Create deck using noOfCards from another deck
     public Deck(int noOfCards, Deck mainDeck) {
         addCards(noOfCards, mainDeck);
     }
