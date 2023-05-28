@@ -1,5 +1,6 @@
 public class Card 
     implements Comparable<Card> {
+    // card ranks are arranged according to value (A - highest, 2 - lowest)
     public static final char[] SUITS = {'c', 'd', 'h', 's'};
     public static final char[] RANKS = {'2', '3', '4', '5', '6', '7', '8', '9', 'X', 'J', 'Q', 'K', 'A'};
 

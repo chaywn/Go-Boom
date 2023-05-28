@@ -1,3 +1,5 @@
+import java.util.Iterator;
+
 public class Player {
     private int number;
     private int score;
@@ -37,27 +39,13 @@ public class Player {
         this.playedCard = null;
     }
 
-    public boolean containCard(char suit, char rank) {
-        for (int i = 0; i < deck.getSize(); i++) {
-            if (suit == deck.getCard(i).getSuit() && rank == deck.getCard(i).getRank()) {
-                return true;
-            }
-        }
-
-        return false;
+    public boolean hasCard(char suit, char rank) {
+        return deck.containCard(suit, rank);
     }
 
     public Card dealCard(char suit, char rank) {
-        for (int i = 0; i < deck.getSize(); i++) {
-            if (suit == deck.getCard(i).getSuit() && rank == deck.getCard(i).getRank()) {
-                Card card = deck.getCard(i);
-
-                deck.removeCard(card);
-                return card;
-            }
-        }
-
-        return null;
+        Card c = deck.getCard(suit, rank);
+        return deck.popCard(c);
     }
 
     public void retrieveCards(int noOfCards, Deck mainDeck) {
@@ -67,11 +55,12 @@ public class Player {
         else {
             deck.addCards(noOfCards, mainDeck);
         }
-        
     }
 
     public void drawCard(Deck mainDeck) {
-        deck.addCard(mainDeck.popCard(0));
+        Iterator<Card> itr = mainDeck.iterator();
+        deck.addCard(itr.next());
+        itr.remove();
     }
 
     public void resetDeck(int noOfCards, Deck mainDeck) {
