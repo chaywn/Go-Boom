@@ -3,6 +3,7 @@ import java.util.TreeMap;
 import java.util.Iterator;
 import java.util.Collections;
 import java.util.Random;
+import java.io.*; 
 
 public class Game {
 
@@ -33,6 +34,7 @@ public class Game {
 
     static int playerTurn, trickNum, roundNum, playerTurnCount;
     static boolean playerTurnEnd, roundEnd;
+    private static final String SAVE_FILE_NAME = "savegame.txt"; // add constant for the save file name
 
     public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
@@ -146,6 +148,7 @@ public class Game {
     static void resetGame() {
         players = new Player[PLAYER_COUNT];
         roundNum = 0;
+        deleteSaveFile();
         startNewGame();
     }
 
@@ -359,5 +362,124 @@ public class Game {
             default:
                 return -1;
         }
+    }
+    static String deckToString(Deck deck) {
+        StringBuilder sb = new StringBuilder();
+    
+        Iterator<Card> iterator = deck.iterator();
+        while (iterator.hasNext()) {
+            Card card = iterator.next();
+            sb.append(card.getSuit()).append(card.getRank());
+    
+            if (iterator.hasNext()) {
+                sb.append(",");
+            }
+        }
+    
+        return sb.toString();
+    }
+
+    static Deck stringToDeck(String deckString) {
+        Deck deck = new Deck(rand);
+    
+        String[] cards = deckString.split(",");
+        for (String card : cards) {
+            char suit = card.charAt(0);
+            char rank = card.charAt(1);
+            deck.addCard(new Card(suit, rank));
+        }
+    
+        return deck;
+    }
+    
+    static void saveGame() {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(SAVE_FILE_NAME))) {
+            // Save player information
+            for (Player player : players) {
+                writer.println(player.getNumber());
+                writer.println(player.getScore());
+                writer.println(deckToString(player.getDeck()));
+            }
+    
+            // Save round information
+            writer.println(roundNum);
+            writer.println(trickNum);
+            writer.println(playerTurn);
+            writer.println(playerTurnCount);
+            writer.println(playerTurnEnd);
+            writer.println(roundEnd);
+    
+            // Save deck information
+            writer.println(deckToString(mainDeck));
+            writer.println(deckToString(centerDeck));
+    
+            writer.flush();
+        } catch (IOException e) {
+            System.out.println("Error saving game: " + e.getMessage());
+        }
+    }
+    
+
+    static void loadGame() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(SAVE_FILE_NAME))) {
+            // Load player information
+            for (int i = 0; i < PLAYER_COUNT; i++) {
+                int number = Integer.parseInt(reader.readLine());
+                int score = Integer.parseInt(reader.readLine());
+                Deck deck = stringToDeck(reader.readLine());
+                players[i] = new Player(number, score, deck);
+            }
+    
+            // Load round information
+            roundNum = Integer.parseInt(reader.readLine());
+            trickNum = Integer.parseInt(reader.readLine());
+            playerTurn = Integer.parseInt(reader.readLine());
+            playerTurnCount = Integer.parseInt(reader.readLine());
+            playerTurnEnd = Boolean.parseBoolean(reader.readLine());
+            roundEnd = Boolean.parseBoolean(reader.readLine());
+    
+            // Load deck information
+            mainDeck = stringToDeck(reader.readLine());
+            centerDeck = stringToDeck(reader.readLine());
+        } catch (IOException e) {
+            System.out.println("Error loading game: " + e.getMessage());
+        }
+    }
+    
+    
+    static void deleteSaveFile() {
+        File file = new File(SAVE_FILE_NAME);
+        file.delete();
+    }
+
+    static void playGame() {
+        Scanner scanner = new Scanner(System.in);
+        String cmd;
+    
+        while (true) {
+            displayCards();
+    
+            System.out.println("Enter command (play/draw/exit):");
+            cmd = scanner.nextLine();
+    
+            if (cmd.equalsIgnoreCase("play")) {
+                // ...
+                // Rest of the playGame() method implementation
+    
+            } else if (cmd.equalsIgnoreCase("draw")) {
+                // ...
+                // Rest of the draw card logic
+    
+            } else if (cmd.equalsIgnoreCase("exit")) {
+                saveGame();
+                System.out.println("Game saved. Exiting...");
+                break;
+    
+            } else {
+                System.out.println("Invalid command. Please try again.");
+            }
+        }
+    
+        scanner.close();
     }
 }
