@@ -5,7 +5,13 @@ public class Player {
     private int score;
     private Deck deck;
     private Card playedCard;
-
+    
+    public Player(int number, int score, Deck deck) {
+       this.number = number;
+       this.score = score;
+       this.deck = deck;
+    }
+    
     public Player(int number) {
         this.number = number;
         this.playedCard = null;
