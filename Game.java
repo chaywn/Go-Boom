@@ -432,7 +432,7 @@ public class Game {
     
             writer.flush();
         } catch (IOException e) {
-            System.out.println("Error saving game: " + e.getMessage());
+            System.out.println("\nError saving game: " + e.getMessage());
         }
     }
     
@@ -458,12 +458,13 @@ public class Game {
             // Load deck information
             mainDeck = stringToDeck(reader.readLine());
             centerDeck = stringToDeck(reader.readLine());
-        } catch (IOException e) {
-            System.out.println("Error loading game: " + e.getMessage());
-        }
 
-        System.out.println();
-        System.out.println("*** Previous game resumed ***");
+            System.out.println();
+            System.out.println("*** Previous game resumed ***");
+            
+        } catch (IOException e) {
+            System.out.println("\nError loading game: " + e.getMessage());
+        }
     }
     
     
