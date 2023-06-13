@@ -23,6 +23,10 @@ public class MainFrame extends JFrame {
                 getContentPane().add(gamePanel);
                 revalidate();
                 repaint();
+
+                // Start Game
+                Game.startNewGame();
+                Game.update();
             }
         });
     }
@@ -72,6 +76,9 @@ public class MainFrame extends JFrame {
     }
 
     public static void main(String[] args) {
+        System.out.println("Welcome to Go Boom!");
+        System.out.println("Press the start button on the GUI to begin :)");
         SwingUtilities.invokeLater(() -> new MainFrame());
+        System.out.println();
     }
 }

@@ -20,7 +20,12 @@ public class GamePanel extends JPanel {
 
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                //startNewGame();
+                // Console message
+                System.out.println("*** A new game is initialized ***\n");
+
+                // Start new game
+                Game.startNewGame();
+                Game.update();
             }
         });
     }
@@ -46,8 +51,7 @@ public class GamePanel extends JPanel {
         // Add the card images to the panel
         for (String suit : suits) {
             for (String rank : ranks) {
-                String cardPath = "C:\\Users\\user\\Downloads\\Playing Cards\\Playing Cards\\PNG-cards-1.3\\" + rank
-                        + "_of_" + suit + ".png";
+                String cardPath = "images\\cards\\" + rank + "_of_" + suit + ".png";
                 ImageIcon cardIcon = new ImageIcon(cardPath);
                 Image scaledCardImage = cardIcon.getImage().getScaledInstance(50, 80, Image.SCALE_SMOOTH);
                 ImageIcon scaledCardIcon = new ImageIcon(scaledCardImage);

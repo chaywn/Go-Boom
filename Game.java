@@ -1,5 +1,8 @@
 import java.util.Scanner;
 import java.util.TreeMap;
+
+import javax.swing.SwingUtilities;
+
 import java.util.Iterator;
 import java.util.Collections;
 import java.util.Random;
@@ -20,6 +23,9 @@ public class Game {
 
     // Create Random object
     static Random rand = new Random(System.currentTimeMillis());
+
+    // Scanner object
+    static Scanner input = new Scanner(System.in);
     
     // The main deck, starting with 52 cards
     static Deck mainDeck;
@@ -37,109 +43,98 @@ public class Game {
     private static final String SAVE_FILE_NAME = "savegame.txt"; // add constant for the save file name
 
     public static void main(String[] args) {
-        Scanner input = new Scanner(System.in);
-
-        startNewGame();
-
-        while (true) {
-            try {
-                // Display cards
-                displayCards();
-                
-                // Get user command inputs
-                System.out.print("> ");
-                String cmd = input.next();
-
-                // Check command and run
-                if (cmd.length() == 1) {
-                    switch (Character.toLowerCase(cmd.charAt(0))) {
-                        // Start game command
-                        case 's':
-                            System.out.println();
-                            System.out.println("*** A new game is initialized ***");
-                            startNewGame();
-                            break;
-                        // Reset game command
-                        case 'r':
-                            System.out.println();
-                            System.out.println("*** The game is resetted. All scores are set to 0 ***");
-                            resetGame();
-                            break;
-                        // Resume game command
-                        case 'l':
-                            loadGame();
-                            input.nextLine();
-                            System.out.println();
-                            continue;
-                        // Quit game command
-                        case 'x':
-                            saveGame();
-                            System.out.println();
-                            System.out.println("*** Game Saved and Exited ***");
-                            System.out.println();
-                            input.close();
-                            return;
-                        // Draw card command
-                        case 'd':
-                            playerDrawCard();
-                            break;
-                        default: 
-                            throw new IllegalArgumentException("Invalid Command.");
-                    }
-                }
-                else if (cmd.length() == 2) {
-                    playerDealCard(cmd);
-                    roundEnd = checkRoundEnd();
-                }
-                else {
-                    throw new IllegalArgumentException("Invalid Command.");
-                }
-            }
-            catch (IllegalArgumentException ex) {
-                System.out.println("Input Error: " + ex.getMessage());
-            }
-
-            if (playerTurnEnd) {
-                // If all players have played their turn
-                if (playerTurnCount == PLAYER_COUNT - 1) {
-                    endTrick();
-                }
-                // Else, switch to next player
-                else {
-                    playerTurn = (playerTurn + 1) % PLAYER_COUNT;
-                    playerTurnCount++;
-                }
-                playerTurnEnd = false;
-            }
-
-            // Check if the game has ended when a player runs out of cards to play
-            if (roundEnd) {
-                calculateScores();
-                System.out.println();
-                System.out.println("*** Player" + (roundWinner.getNumber() + 1) + " wins the game! A new game is initialized ***");
-                roundNum++;
-                // Start a new round
-                startNewGame();
-            }
-            else if (playerTurnCount != 0) {
-                while (!hasPlayableMove()) {
-                    players[playerTurn].noPlayedCard();
+        System.out.println("Welcome to Go Boom!");
+        System.out.println("Press the start button on the GUI to begin :)");
+        SwingUtilities.invokeLater(() -> new MainFrame());
+        System.out.println();
+    }
+    
+    public static void update() {
+        // Display cards in console
+        displayCards();
+        
+        // USE THIS AS REFERENCE FOR BUTTON EVENTS
+        String cmd = "";
+        if (cmd.length() == 1) {
+            switch (Character.toLowerCase(cmd.charAt(0))) {
+                // Start game command
+                case 's':
                     System.out.println();
-                    System.out.println("*** Player" + (playerTurn + 1) + " has no move to play. Their turn is skipped ***");
+                    System.out.println("*** A new game is initialized ***");
+                    startNewGame();
+                    break;
+                // Reset game command
+                case 'r':
+                    System.out.println();
+                    System.out.println("*** The game is resetted. All scores are set to 0 ***");
+                    resetGame();
+                    break;
+                // Resume game command
+                case 'l':
+                    loadGame();
+                    input.nextLine();
+                    System.out.println();
+                    // continue;
+                // Quit game command
+                case 'x':
+                    saveGame();
+                    System.out.println();
+                    System.out.println("*** Game Saved and Exited ***");
+                    System.out.println();
+                    input.close();
+                    return;
+                // Draw card command
+                case 'd':
+                    playerDrawCard();
+                    break;
+                default: 
+                    throw new IllegalArgumentException("Invalid Command.");
+            }
+        }
+        else if (cmd.length() == 2) {
+            playerDealCard(cmd);
+            roundEnd = checkRoundEnd();
+        }
 
-                    playerTurn = (playerTurn + 1) % PLAYER_COUNT;
-                    playerTurnCount++;
 
-                    if (playerTurnCount == PLAYER_COUNT) {
-                        endTrick();
-                        break;
-                    }
+        if (playerTurnEnd) {
+            // If all players have played their turn
+            if (playerTurnCount == PLAYER_COUNT - 1) {
+                endTrick();
+            }
+            // Else, switch to next player
+            else {
+                playerTurn = (playerTurn + 1) % PLAYER_COUNT;
+                playerTurnCount++;
+            }
+            playerTurnEnd = false;
+        }
+
+        // Check if the game has ended when a player runs out of cards to play
+        if (roundEnd) {
+            calculateScores();
+            System.out.println();
+            System.out.println("*** Player" + (roundWinner.getNumber() + 1) + " wins the game! A new game is initialized ***");
+            roundNum++;
+            // Start a new round
+            startNewGame();
+        }
+        else if (playerTurnCount != 0) {
+            while (!hasPlayableMove()) {
+                players[playerTurn].noPlayedCard();
+                System.out.println();
+                System.out.println("*** Player" + (playerTurn + 1) + " has no move to play. Their turn is skipped ***");
+
+                playerTurn = (playerTurn + 1) % PLAYER_COUNT;
+                playerTurnCount++;
+
+                if (playerTurnCount == PLAYER_COUNT) {
+                    endTrick();
+                    break;
                 }
             }
-
-            input.nextLine();
-            System.out.println();
         }
+        System.out.println();
     }
 
     static void endTrick() {
