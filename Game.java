@@ -12,7 +12,7 @@ public class Game {
 
     // CONSTANTS
     static final int PLAYER_COUNT = 4; 
-    static final int STARTING_CARD_NO = 7;
+    static final int STARTING_CARD_NO = 3;
 
     static final char[][] LEAD_CARDS = {
         {'A', '5', '9', 'K'},  // Player 1
@@ -39,68 +39,26 @@ public class Game {
     static Player roundWinner;
 
     static int playerTurn, trickNum, roundNum, playerTurnCount;
-    static boolean playerTurnEnd, roundEnd;
-    private static final String SAVE_FILE_NAME = "savegame.txt"; // add constant for the save file name
+    static boolean playerTurnEnd, roundEnd, playerHasMove, trickEnd;
+    static boolean displayRoundEndGUI = false, displayTrickEndGUI = false;
+    static final String SAVE_FILE_NAME = "savegame.txt"; // savefile name
 
     public static void main(String[] args) {
         System.out.println("Welcome to Go Boom!");
-        System.out.println("Press the start button on the GUI to begin :)");
+        System.out.println("Press play to begin :)");
         SwingUtilities.invokeLater(() -> new MainFrame());
         System.out.println();
     }
     
-    public static void update() {
-        // Display cards in console
-        displayCards();
-        
-        // USE THIS AS REFERENCE FOR BUTTON EVENTS
-        String cmd = "";
-        if (cmd.length() == 1) {
-            switch (Character.toLowerCase(cmd.charAt(0))) {
-                // Start game command
-                case 's':
-                    System.out.println();
-                    System.out.println("*** A new game is initialized ***");
-                    startNewGame();
-                    break;
-                // Reset game command
-                case 'r':
-                    System.out.println();
-                    System.out.println("*** The game is resetted. All scores are set to 0 ***");
-                    resetGame();
-                    break;
-                // Resume game command
-                case 'l':
-                    loadGame();
-                    input.nextLine();
-                    System.out.println();
-                    // continue;
-                // Quit game command
-                case 'x':
-                    saveGame();
-                    System.out.println();
-                    System.out.println("*** Game Saved and Exited ***");
-                    System.out.println();
-                    input.close();
-                    return;
-                // Draw card command
-                case 'd':
-                    playerDrawCard();
-                    break;
-                default: 
-                    throw new IllegalArgumentException("Invalid Command.");
-            }
-        }
-        else if (cmd.length() == 2) {
-            playerDealCard(cmd);
-            roundEnd = checkRoundEnd();
-        }
-
+    public static String update() {
+        String message = "";
 
         if (playerTurnEnd) {
             // If all players have played their turn
             if (playerTurnCount == PLAYER_COUNT - 1) {
-                endTrick();
+                trickEnd = true;
+                displayTrickEndGUI = true;
+                message = endTrick();
             }
             // Else, switch to next player
             else {
@@ -113,48 +71,76 @@ public class Game {
         // Check if the game has ended when a player runs out of cards to play
         if (roundEnd) {
             calculateScores();
-            System.out.println();
-            System.out.println("*** Player" + (roundWinner.getNumber() + 1) + " wins the game! A new game is initialized ***");
+            message = ("Player" + (roundWinner.getNumber() + 1) + " wins the game! A new game is initialized");
+            System.out.println("*** " + message + " ***\n");
             roundNum++;
+            displayRoundEndGUI = true;
             // Start a new round
             startNewGame();
         }
+        // If the next player is not the lead player
         else if (playerTurnCount != 0) {
-            while (!hasPlayableMove()) {
+            // Check if the next player has playable move
+            playerHasMove = hasPlayableMove();
+
+            if (!playerHasMove) {
                 players[playerTurn].noPlayedCard();
-                System.out.println();
-                System.out.println("*** Player" + (playerTurn + 1) + " has no move to play. Their turn is skipped ***");
+                message = "Player" + (playerTurn + 1) + " has no move to play. Their turn is skipped";
+                System.out.println("*** " + message + " ***\n");
 
-                playerTurn = (playerTurn + 1) % PLAYER_COUNT;
-                playerTurnCount++;
-
-                if (playerTurnCount == PLAYER_COUNT) {
-                    endTrick();
-                    break;
-                }
+                playerTurnEnd = true;
             }
+
+            // while (!hasPlayableMove()) {
+            //     players[playerTurn].noPlayedCard();
+            //     System.out.println();
+            //     System.out.println("*** Player" + (playerTurn + 1) + " has no move to play. Their turn is skipped ***");
+
+            //     playerTurn = (playerTurn + 1) % PLAYER_COUNT;
+            //     playerTurnCount++;
+
+            //     if (playerTurnCount == PLAYER_COUNT) {
+            //         endTrick();
+            //         break;
+            //     }
+            // }
         }
+
+        // Display cards in console
+        displayCards();
+
         System.out.println();
+        return message;
     }
 
-    static void endTrick() {
+    private static String endTrick() {
         // Determine the roundWinner of the trick, and set them as the lead player for the next trick
         playerTurn = determineTrickWinner();
-        System.out.println();
-        System.out.println("*** Player" + (playerTurn + 1) + " wins Trick #" + (trickNum + 1) + " ***");
+        String message = "Player" + (playerTurn + 1) + " wins Trick #" + (trickNum + 1);
+        System.out.println("*** " + message + "***\n");
         centerDeck.clear();
         playerTurnCount = 0;
         trickNum++;
+        trickEnd = false;
+        return message;
     }
 
-    static void resetGame() {
+    public static String quitGame() {
+        String result = saveGame();
+        System.out.println("*** " + result + " ***\n");
+        input.close();
+        return result;
+    }
+
+    public static void resetGame() {
         players = new Player[PLAYER_COUNT];
         roundNum = 0;
         deleteSaveFile();
         startNewGame();
+        System.out.println("*** The game is resetted. All scores are set to 0 ***\n");
     }
 
-    static void startNewGame() {
+    public static void startNewGame() {
         mainDeck= new Deck(rand);
 
         centerDeck = new Deck(1, mainDeck);
@@ -176,11 +162,13 @@ public class Game {
 
         trickNum = 0;
         playerTurnCount = 0;
+        playerHasMove = true;
         playerTurnEnd = false;
         roundEnd = false;
+        trickEnd = false;
     }
 
-    static void displayCards() {
+    private static void displayCards() {
         System.out.println("Round #" + (roundNum + 1) + ", Trick #" + (trickNum + 1));
 
         for (Player p: players) {
@@ -204,7 +192,7 @@ public class Game {
 
 
 
-    static int determineStartingPlayer(Card leadCard) {
+    private static int determineStartingPlayer(Card leadCard) {
         char leadCardRank = leadCard.getRank();
         
         for (int i = 0; i < LEAD_CARDS.length; i++) {
@@ -217,7 +205,7 @@ public class Game {
         return 0;
     }
 
-    static boolean hasPlayableMove() {
+    private static boolean hasPlayableMove() {
         // If the main deck has no more cards, check if the player has playable card
         if (mainDeck.getSize() == 0) {
             Card leaCard = centerDeck.iterator().next();
@@ -234,7 +222,7 @@ public class Game {
         return true;
     }
 
-    static void playerDrawCard() {
+    public static void playerDrawCard() {
         // Draws card only if the mainDeck has card(s)
         if (mainDeck.getSize() > 0) {
             players[playerTurn].drawCard(mainDeck);
@@ -245,50 +233,30 @@ public class Game {
         }
     }
                             
-    static void playerDealCard(String cmd) throws IllegalArgumentException {
+    public static boolean playerDealCard(Card c) {
         Player p = players[playerTurn];
-        char suit = Character.toLowerCase(cmd.charAt(0)), rank = Character.toUpperCase(cmd.charAt(1));
-        boolean valid = false;
+        char suit = c.getSuit();
+        char rank = c.getRank();
         
-        // Check if the card is valid
-        // 1. Check if the first char is a suit
-        outer:
-            for (char s : Card.SUITS) {
-                if (suit == s) {
-                    // 2. Check if the second char is a rank
-                    for (char r : Card.RANKS) {
-                        if (rank == r) {
-                            valid = true;
-                            break outer;
-                        }
-                    }
-                }
-            }
-        if (!valid) {
-            throw new IllegalArgumentException("Card does not exist.");
+        if (!players[playerTurn].hasCard(suit, rank)) {
+            return false;
         }
 
-        // Check if player has this card
-        if (p.hasCard(suit, rank)) {
-            // Check if the card is playable
-            if (centerDeck.getSize() == 0 || suit == centerDeck.iterator().next().getSuit() || rank == centerDeck.iterator().next().getRank()) {
-                Card card = p.dealCard(suit, rank);
-                centerDeck.addCard(card);
-                p.playedCard(card);
-                playerTurnEnd = true;
-            }
-            else {
-                throw new IllegalArgumentException("Card does not follow the suit or rank of the lead card.");
-            }
+        // Check if the card is playable
+        if (centerDeck.getSize() == 0 || suit == centerDeck.iterator().next().getSuit() || rank == centerDeck.iterator().next().getRank()) {
+            Card card = p.dealCard(c.getSuit(), c.getRank());
+            centerDeck.addCard(card);
+            p.playedCard(card);
+            playerTurnEnd = true;
+
+            roundEnd = checkRoundEnd();
+            return true;
         }
-        else {
-            throw new IllegalArgumentException("Player does not have this card.");
-        }
-        
+        return false;
     }
 
 
-    static boolean checkRoundEnd() {
+    private static boolean checkRoundEnd() {
         // Returns true if a player's deck is empty
         for (int i = 0; i < PLAYER_COUNT; i++) {
             if (players[i].getDeckSize() == 0) {
@@ -300,7 +268,7 @@ public class Game {
     }
 
 
-    static int determineTrickWinner() {
+    private static int determineTrickWinner() {
         Card leadCard = centerDeck.iterator().next();
         char leadSuit = leadCard.getSuit();
 
@@ -318,7 +286,7 @@ public class Game {
     }
     
 
-    static void calculateScores() {
+    private static void calculateScores() {
         for (Player player: players){
             int score = 0;
             Deck deck = player.getDeck();
@@ -337,7 +305,7 @@ public class Game {
         }
     }
     
-    static int getCardValue(Card card) {
+    private static int getCardValue(Card card) {
         char rank = card.getRank();
 
         switch (rank) {
@@ -365,7 +333,8 @@ public class Game {
                 return -1;
         }
     }
-    static String deckToString(Deck deck) {
+    
+    private static String deckToString(Deck deck) {
         StringBuilder sb = new StringBuilder();
     
         Iterator<Card> iterator = deck.iterator();
@@ -387,7 +356,7 @@ public class Game {
         return sb.toString();
     }
 
-    static Deck stringToDeck(String deckString) {
+    private static Deck stringToDeck(String deckString) {
         Deck deck = new Deck();
     
         String[] cards = deckString.split(",");
@@ -404,7 +373,7 @@ public class Game {
         return deck;
     }
     
-    static void saveGame() {
+    public static String saveGame() {
         try (PrintWriter writer = new PrintWriter(new FileWriter(SAVE_FILE_NAME))) {
             // Save player information
             for (Player player : players) {
@@ -426,13 +395,15 @@ public class Game {
             writer.println(deckToString(centerDeck));
     
             writer.flush();
+
+            return "Game Saved and Exited";
         } catch (IOException e) {
-            System.out.println("\nError saving game: " + e.getMessage());
+            return "Error saving game: " + e.getMessage();
         }
     }
     
 
-    static void loadGame() {
+    public static String loadGame() {
         try (BufferedReader reader = new BufferedReader(new FileReader(SAVE_FILE_NAME))) {
             // Load player information
             for (int i = 0; i < PLAYER_COUNT; i++) {
@@ -454,16 +425,16 @@ public class Game {
             mainDeck = stringToDeck(reader.readLine());
             centerDeck = stringToDeck(reader.readLine());
 
-            System.out.println();
-            System.out.println("*** Previous game resumed ***");
-            
+            System.out.println("*** Previous game resumed ***\n");
+
+            return "Previous game resumed";
         } catch (IOException e) {
-            System.out.println("\nError loading game: " + e.getMessage());
+            return "Error loading game: " + e.getMessage();
         }
     }
     
     
-    static void deleteSaveFile() {
+    private static void deleteSaveFile() {
         File file = new File(SAVE_FILE_NAME);
         file.delete();
     }

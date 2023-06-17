@@ -26,6 +26,28 @@ public class Card
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+
+        final Card c = (Card) obj;
+
+        if (suit !=  c.suit || rank != c.rank) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = getClass().hashCode();
+        hash = 31 * hash + suit + rank;
+        return hash;
+    }
+
+    @Override
     public int compareTo(Card c) {
         int index = 0, c_index = 0;
 

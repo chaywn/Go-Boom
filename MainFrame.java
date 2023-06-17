@@ -4,7 +4,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 public class MainFrame extends JFrame {
-    private JButton startButton;
+    private JButton playButton;
 
     public MainFrame() {
         initializeComponents();
@@ -13,20 +13,20 @@ public class MainFrame extends JFrame {
     }
 
     private void initializeComponents() {
-        startButton = new JButton("Start");
-        startButton.setFont(new Font("Georgia", Font.BOLD, 15));
+        playButton = new JButton("Play");
+        playButton.setFont(new Font("Georgia", Font.BOLD, 15));
 
-        startButton.addActionListener(new ActionListener() {
+        playButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                GamePanel gamePanel = new GamePanel();
+                // Start Game
+                Game.startNewGame();
+                Game.update();
+
+                GamePanel gamePanel = new GamePanel(MainFrame.this);
                 getContentPane().removeAll();
                 getContentPane().add(gamePanel);
                 revalidate();
                 repaint();
-
-                // Start Game
-                Game.startNewGame();
-                Game.update();
             }
         });
     }
@@ -38,7 +38,7 @@ public class MainFrame extends JFrame {
                 super.paintComponent(g);
                 // Draw the poker card image as the background
                 Image backgroundImage = Toolkit.getDefaultToolkit()
-                        .getImage("C:\\Users\\user\\Downloads\\PokerBackground.jpg");
+                        .getImage("images\\PokerBackground.jpg");
                 g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
             }
         };
@@ -63,7 +63,7 @@ public class MainFrame extends JFrame {
         gbcButton.gridx = 0;
         gbcButton.gridy = 1;
         gbcButton.insets = new Insets(0, 0, 100, 0); // Adjust padding if needed
-        mainPanel.add(startButton, gbcButton);
+        mainPanel.add(playButton, gbcButton);
 
         getContentPane().add(mainPanel);
     }
@@ -77,7 +77,7 @@ public class MainFrame extends JFrame {
 
     public static void main(String[] args) {
         System.out.println("Welcome to Go Boom!");
-        System.out.println("Press the start button on the GUI to begin :)");
+        System.out.println("Press play to begin :)");
         SwingUtilities.invokeLater(() -> new MainFrame());
         System.out.println();
     }
