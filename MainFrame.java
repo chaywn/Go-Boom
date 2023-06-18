@@ -38,7 +38,7 @@ public class MainFrame extends JFrame {
                 super.paintComponent(g);
                 // Draw the poker card image as the background
                 Image backgroundImage = Toolkit.getDefaultToolkit()
-                        .getImage("images\\PokerBackground.jpg");
+                        .getImage("Go-Boom-main\\images\\PokerBackground.jpg");
                 g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
             }
         };
@@ -70,8 +70,9 @@ public class MainFrame extends JFrame {
 
     private void setStartPageProperties() {
         setTitle("Go Boom");
-        setSize(800, 600);
+        setMinimumSize(new Dimension(1000, 650)); // Set the minimum size of the window
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null); // Center the window on the screen
         setVisible(true);
     }
 
