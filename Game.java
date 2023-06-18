@@ -12,7 +12,7 @@ public class Game {
 
     // CONSTANTS
     static final int PLAYER_COUNT = 4; 
-    static final int STARTING_CARD_NO = 3;
+    static final int STARTING_CARD_NO = 9;
 
     static final char[][] LEAD_CARDS = {
         {'A', '5', '9', 'K'},  // Player 1
