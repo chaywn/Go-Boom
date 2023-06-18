@@ -27,12 +27,12 @@ public class GamePanel extends JPanel {
     private HashMap<Card, JLabel> cardToLabelMap = new HashMap<>();
     private HashMap<JLabel, Card> labelToCardMap = new HashMap<>();
     private JLabel mainDeckLabel;
-    
+
     // Panels
     private JPanel[] playerPanels = new JPanel[Game.PLAYER_COUNT];
 
     // Path
-    private String holeCardPath = "images\\cards\\hole_card.png";
+    private String holeCardPath = "Go-Boom-main\\images\\cards\\hole_card.png";
 
     public GamePanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
@@ -61,7 +61,7 @@ public class GamePanel extends JPanel {
                 // Else if a faced-up card is click, deal the card
                 else if (labelToCardMap.containsKey(e.getSource())) {
                     boolean played = Game.playerDealCard(labelToCardMap.get(e.getSource()));
-                    
+
                     if (played) {
                         String message = Game.update();
                         refreshPanel();
@@ -84,14 +84,15 @@ public class GamePanel extends JPanel {
     }
 
     private void initializeCards() {
-        // Follow the same order of the suit and rank of the game cards so that they have the same index
+        // Follow the same order of the suit and rank of the game cards so that they
+        // have the same index
         String[] suits = { "clubs", "diamonds", "hearts", "spades" };
-        String[] ranks = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
+        String[] ranks = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
 
         for (int s = 0; s < Card.SUITS.length; s++) {
             for (int r = 0; r < Card.RANKS.length; r++) {
                 Card card = new Card(Card.SUITS[s], Card.RANKS[r]);
-                String cardPath = "images\\cards\\" + ranks[r] + "_of_" + suits[s] + ".png";
+                String cardPath = "Go-Boom-main\\images\\cards\\" + ranks[r] + "_of_" + suits[s] + ".png";
                 JLabel cardLabel = createCardLabel(cardPath);
 
                 cardToLabelMap.put(card, cardLabel);
@@ -105,10 +106,11 @@ public class GamePanel extends JPanel {
     private void refreshPanel() {
         // Update label text
         roundNumLabel.setText("Round #" + (Game.roundNum + 1));
-        trickNumLabel.setText("Trick #" + (Game.trickNum + 1));;
+        trickNumLabel.setText("Trick #" + (Game.trickNum + 1));
+        ;
         playerTurnLabel.setText("Turn: Player" + (Game.playerTurn + 1));
         for (int i = 0; i < Game.PLAYER_COUNT; i++) {
-            playerScoreLabels[i].setText("Player " + (i+1) + " = " + Game.players[i].getScore());
+            playerScoreLabels[i].setText("Player " + (i + 1) + " = " + Game.players[i].getScore());
         }
 
         // Rebuild panel
@@ -118,8 +120,7 @@ public class GamePanel extends JPanel {
         repaint();
     }
 
-    private void popUpMessage(String message, String title)
-    {
+    private void popUpMessage(String message, String title) {
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
     }
 
@@ -128,12 +129,12 @@ public class GamePanel extends JPanel {
         trickNumLabel = new JLabel("Trick #" + (Game.trickNum + 1));
         playerTurnLabel = new JLabel("Turn: Player" + (Game.playerTurn + 1));
         for (int i = 0; i < Game.PLAYER_COUNT; i++) {
-            playerScoreLabels[i] = new JLabel("Player " + (i+1) + " = " + Game.players[i].getScore());
+            playerScoreLabels[i] = new JLabel("Player " + (i + 1) + " = " + Game.players[i].getScore());
         }
 
         restartButton = new JButton("Start New Game");
         restartButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {    
+            public void actionPerformed(ActionEvent e) {
                 // Display message
                 popUpMessage("A new game is initialized", "Game Status");
                 System.out.println("*** A new game is initialized ***\n");
@@ -165,7 +166,7 @@ public class GamePanel extends JPanel {
         loadButton = new JButton("Load Game");
         loadButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Load saved file and display returned message             
+                // Load saved file and display returned message
                 popUpMessage(Game.loadGame(), "Load Status");
 
                 Game.update();
@@ -193,6 +194,10 @@ public class GamePanel extends JPanel {
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setOpaque(false);
 
+        // Create a panel for holding the player panels
+        JPanel playerPanelsContainer = new JPanel(new GridLayout(2, 1));
+        playerPanelsContainer.setOpaque(false);
+
         // Add card labels into respective player's panel
         for (int i = 0; i < Game.PLAYER_COUNT; i++) {
             playerPanels[i] = new JPanel();
@@ -205,39 +210,84 @@ public class GamePanel extends JPanel {
                 while (itr.hasNext()) {
                     playerPanels[i].add(cardToLabelMap.get(itr.next()));
                 }
-            }
-            else {
+            } else {
                 int deckSize = Game.players[i].getDeck().getSize();
                 for (int j = 0; j < deckSize; j++) {
                     playerPanels[i].add(createCardLabel(holeCardPath));
                 }
             }
-            
+
+            // Set the layout manager for player panels
+            FlowLayout playerPanelLayout = new FlowLayout(FlowLayout.CENTER, 5, 5);
+            playerPanels[i].setLayout(playerPanelLayout);
+
+            // Create a panel for the name label and player label
+            JPanel labelPanel = new JPanel(new BorderLayout());
+            labelPanel.setOpaque(false);
+
+            // Create a name label for the player
+            JLabel nameLabel = new JLabel("Player " + (i + 1));
+            nameLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            nameLabel.setFont(new Font("Georgia", Font.BOLD, 15));
+            nameLabel.setForeground(Color.BLACK);
+
+            // Add the name label to the label panel
+            labelPanel.add(nameLabel, BorderLayout.NORTH);
+
+            // Add the player label to the label panel
+            labelPanel.add(playerPanels[i], BorderLayout.CENTER);
+
+            // Create a scroll pane for the label panel
+            JScrollPane scrollPane = new JScrollPane(labelPanel);
+            scrollPane.setOpaque(false);
+            scrollPane.getViewport().setOpaque(false);
+            scrollPane.setPreferredSize(new Dimension(200, 200));
+
+            // Add the scroll pane to the player panels container
+            playerPanelsContainer.add(scrollPane);
+
         }
-        // Add player panels to main panel
-        mainPanel.add(playerPanels[0], BorderLayout.SOUTH);
-        mainPanel.add(playerPanels[1], BorderLayout.WEST);
-        mainPanel.add(playerPanels[2], BorderLayout.NORTH);
-        mainPanel.add(playerPanels[3], BorderLayout.EAST);
+
+        // Create a scroll pane for the player panels container
+        JScrollPane playerPanelsScrollPane = new JScrollPane(playerPanelsContainer);
+        playerPanelsScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        playerPanelsScrollPane.setOpaque(false);
+        playerPanelsScrollPane.getViewport().setOpaque(false);
+
+        // Add the scroll pane to the main panel
+        mainPanel.add(playerPanelsContainer, BorderLayout.NORTH);
 
         // Add decks cards to center panel
         JPanel centerPanel = new JPanel();
         centerPanel.setOpaque(false);
 
+        // Create a label for the deck
+        JLabel deckLabel = new JLabel("Deck");
+        deckLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        deckLabel.setFont(new Font("Georgia", Font.BOLD, 15));
+        deckLabel.setForeground(Color.BLACK);
+
+        // Add the deck label to the center panel
+        centerPanel.add(deckLabel);
+
         if (Game.mainDeck.getSize() > 0) {
             centerPanel.add(mainDeckLabel);
         }
-        
+
         if (Game.centerDeck.getSize() > 0) {
             Iterator<Card> itr = Game.centerDeck.iterator();
             while (itr.hasNext()) {
                 centerPanel.add(cardToLabelMap.get(itr.next()));
             }
         }
-        
-        // Add center panel to main panel
-        mainPanel.add(centerPanel, BorderLayout.CENTER);
 
+        // Create a wrapper panel for the centerPanel
+        JPanel centerWrapperPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 100, 100));
+        centerWrapperPanel.setOpaque(false);
+        centerWrapperPanel.add(centerPanel);
+
+        // Add center panel to main panel
+        mainPanel.add(centerWrapperPanel, BorderLayout.CENTER);
 
         // Create side Panel
         JPanel sidePanel = new JPanel();
@@ -256,13 +306,13 @@ public class GamePanel extends JPanel {
         textPanel.add(trickNumLabel);
         textPanel.add(playerTurnLabel);
         textPanel.add(new JLabel("Scores: "));
-        for (JLabel label: playerScoreLabels) {
+        for (JLabel label : playerScoreLabels) {
             textPanel.add(label);
         }
 
         // Create the start button panel
         JPanel buttonPanel = new JPanel(new GridLayout(4, 1));
-        buttonPanel.setOpaque(false);;
+        buttonPanel.setOpaque(false);
         buttonPanel.add(restartButton);
         buttonPanel.add(resetButton);
         buttonPanel.add(loadButton);
@@ -272,17 +322,17 @@ public class GamePanel extends JPanel {
         sidePanel.add(textPanel, BorderLayout.NORTH);
         sidePanel.add(buttonPanel, BorderLayout.SOUTH);
 
-
         // Add main panel and side panel to game panel
         add(mainPanel, BorderLayout.CENTER);
         add(sidePanel, BorderLayout.EAST);
 
         // Set empty border around the panel for padding
-        int padding = 100; // Adjust the padding size as needed
+        int padding = 10; // Adjust the padding size as needed
         setBorder(new EmptyBorder(padding, padding, padding, padding));
 
         if (!Game.playerHasMove) {
-            popUpMessage("Player" + (Game.playerTurn + 1) + " has no move to play. Their turn is skipped", "Game Status");
+            popUpMessage("Player" + (Game.playerTurn + 1) + " has no move to play. Their turn is skipped",
+                    "Game Status");
             Game.playerHasMove = true;
             String message = Game.update();
             refreshPanel();
@@ -301,7 +351,7 @@ public class GamePanel extends JPanel {
 
     private void setBackgroundImage() {
         // Load the background image
-        ImageIcon backgroundImageIcon = new ImageIcon("images\\Green Background.jpg");
+        ImageIcon backgroundImageIcon = new ImageIcon("Go-Boom-main\\images\\Green Background.jpg");
         backgroundImage = backgroundImageIcon.getImage();
     }
 
